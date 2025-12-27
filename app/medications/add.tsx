@@ -7,7 +7,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View,StyleSheet,
+  Platform
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 const FREQUENCIES = [
@@ -64,7 +65,7 @@ export default function AddMedicationScreen() {
         currentSupply: "",
         refillAt: ""
     });
-
+  const [errors, setErrors] = useState<{[key: string] : string}>({})
   const renderFrequencyOptions = () => {
     return (
       <View>
@@ -94,40 +95,73 @@ export default function AddMedicationScreen() {
     );
   };
   return (
-    <View>
+    <View style={styles.container}>
       {/* */}
       <LinearGradient
         colors={["#1a8e2d", "#146922"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
+        style={styles.headerGradient}
       />
-      <View>
-        <View>
-          <TouchableOpacity>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton}>
             <Ionicons name="chevron-back" size={28} color={"1a8e2d"} />
           </TouchableOpacity>
-          <Text>New Medications</Text>
+          <Text style={styles.headerTitle}>New Medications</Text>
         </View>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <View>
+        <ScrollView showsVerticalScrollIndicator={false} 
+        style= {{flex: 1}} contentContainerStyle={styles.formContentContainer}
+        >
             {/* basic info */}
-            <View>
-              <TextInput
+          <View style={styles.section}>
+            <View style={styles.inputContainer}>
+              <TextInput 
+                style={[styles.mainInput, errors.name && styles.inputError]}
                 placeholder="Medication Name"
                 placeholderTextColor={"#999"}
+                value={form.name}
+                onChangeText={(text)=> {
+                  setForm({...form, name: text})
+                  if(errors.name){
+                    setErrors({...errors, name: ""})
+                  }
+                }}
               />
+              {errors.name &&  (
+                <Text style={styles.errrText}>{errors.name}</Text>
+              )}
             </View>
-            <View>
+            <View style={styles.inputContainer}>
               <TextInput
+                style={[styles.mainInput, errors.name && styles.inputError]}
                 placeholder="Dosage (eg. 500mg)"
                 placeholderTextColor={"#999"}
+                 value={form.dosage}
+                onChangeText={(text)=> {
+                  setForm({...form, dosage: text})
+                  if(errors.dosage){
+                    setErrors({...errors, dosage: ""})
+                  }
+                }}
               />
+              {errors.dosage &&  (
+                <Text style={styles.errrText}>{errors.dosage}</Text>
+              )}
             </View>
-            <View>
-              <Text>How often?</Text>
+            </View>
+            {/* schedule */}
+            <View style={styles.container}>
+              <Text style={styles.sectionTitle}>How often?</Text>
+              {errors.frequency &&  (
+                <Text style={styles.errrText}>{errors.frequency}</Text>
+              )}
               {/* render frequency options */}
               {renderFrequencyOptions()}
-              <Text>For how long?</Text>
+              <Text style={styles.sectionTitle}>For how long?</Text>
+               {errors.duration &&  (
+                <Text style={styles.errrText}>{errors.duration}</Text>
+              )}
               {/* render duration options */}
               {renderDurationOptions()}
               <TouchableOpacity>
@@ -146,7 +180,7 @@ export default function AddMedicationScreen() {
                 return date;
               })()} />
             </View>
-          </View>
+          
           {/* reminders*/}
           <View>
             <View>
@@ -191,3 +225,89 @@ export default function AddMedicationScreen() {
     </View>
   );
 }
+
+const styles =  StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f8f9fa",
+  },
+  headerGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: Platform.OS === 'ios'? 140 : 135,
+  },
+  content: {
+    flex: 1,
+    paddingTop: Platform.OS === 'ios' ? 50 : 45
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    zIndex: 1
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "white",
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: "#000",
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "white",
+    marginLeft: 15,
+  },
+  formContentContainer: {
+    padding: 20,
+  },
+  section: {
+    marginBottom: 25,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 15,
+     marginTop: 10
+  },
+  mainInput: {
+    fontSize: 20,
+    color: "#333",
+    padding: 15
+  },
+  inputContainer: {
+    backgroundColor: "white",
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  inputError: {
+    borderColor: "#FF5252",
+  },
+  errrText: {
+    color: "#FF5252",
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 12
+  },
+
+
+
+})
