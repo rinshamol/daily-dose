@@ -195,16 +195,17 @@ export default function AddMedicationScreen() {
               }}
               />)}
               {form.frequency && form.frequency !== 'As Needed' && (
-                <View>
-                  <Text>Medication Time</Text>
+                <View style={styles.timeContainer}>
+                  <Text style={styles.timeTitle}>Medication Time</Text>
                
                 {form.times.map((time, index) =>(
                   <TouchableOpacity key={index} 
+                  style={styles.timeButton}
                   onPress={() =>{setShowTimePicker(true)}}>
-                    <View >
+                    <View style={styles.timeIconContainer}>
                       <Ionicons name='time-outline' size={20} color={'#1a8e2d'} />
                     </View>
-                    <Text>{time}</Text>
+                    <Text style={styles.timeButtonText}>{time}</Text>
                     <Ionicons name='chevron-forward' size={20} color={'#666'} />
                   </TouchableOpacity>
                 ))}
@@ -445,7 +446,45 @@ const styles =  StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#333",
-  }
+  },
+  timeContainer: {
+    marginTop: 20,
+  },
+  timeTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color:"#333",
+    marginBottom: 10
+  },
+  timeButton: {
+    flexDirection: "row",
+    alignItems:"center",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 15,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor:"#000",
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2
+  },
+  timeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems : "center",
+    marginRight: 10
+  },
+ timeButtonText: {
+  flex: 1,
+  fontSize: 16,
+  color: '#333'
+ }
 
 
 
