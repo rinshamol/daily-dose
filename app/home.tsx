@@ -173,7 +173,7 @@ export default function HomeScreen() {
             )
         }
         </View>
-        <Modal visible={true} transparent={true} animationType="slide">
+        <Modal visible={false} transparent={true} animationType="slide">
             <View style={styles.modelOverlay}>
                 <View style={styles.modalContent} >
                     <Text style={styles.modalTitle}>
