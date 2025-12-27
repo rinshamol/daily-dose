@@ -8,9 +8,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,StyleSheet,
-  Platform
+  Platform,
+  Dimensions
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+const {width} = Dimensions.get("window");
 const FREQUENCIES = [
   {
     id: "1",
@@ -66,14 +68,21 @@ export default function AddMedicationScreen() {
         refillAt: ""
     });
   const [errors, setErrors] = useState<{[key: string] : string}>({})
+  const [selectedFrequency, setSelectedFrequency] = useState("");
+  const [selectedDuration, setSelectedDuration] = useState("")
+  const [showTimePicker, setShowTimePicker] = useState(false)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const renderFrequencyOptions = () => {
     return (
-      <View>
+      <View style={styles.optionsGrid}>
         {FREQUENCIES.map((freq) => (
-          <TouchableOpacity key={freq.id}>
-            <View>
-              <Ionicons name={freq.icon} size={24} />
-              <Text>{freq.label}</Text>
+          <TouchableOpacity key={freq.id} style={[styles.optionCard, selectedFrequency === freq.label && styles.selectedOptionCard ]}
+          //onPress={}
+          >
+
+            <View style={[styles.optionIcon, selectedFrequency === freq.label && styles.selectedOptionIcon]}>
+              <Ionicons name={freq.icon} size={24} color={selectedFrequency === freq.label ? "white" : "#666"} />
+              <Text style={[styles.optionLabel, selectedFrequency === freq.label && styles.selectedOptionLabel]} >{freq.label}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -82,12 +91,18 @@ export default function AddMedicationScreen() {
   };
   const renderDurationOptions = () => {
     return (
-      <View>
+      <View style={styles.optionsGrid}>
         {DURATIONS.map((dur) => (
-          <TouchableOpacity key={dur.id}>
-            <View>
-              <Text>{dur.value > 0 ? dur.value : "∞"}</Text>
-              <Text>{dur.label}</Text>
+          <TouchableOpacity key={dur.id} style={[styles.optionCard, selectedDuration === dur.label && styles.selectedOptionCard ]}
+          // onPress={}
+          >
+           <View>
+              <Text
+              style={[styles.durationNumber, selectedDuration === dur.label && styles.selectedDurationNumber ]}
+              >{dur.value > 0 ? dur.value : "∞"}</Text>
+              <Text
+              style={[styles.optionLabel, selectedFrequency === dur.label && styles.selectedOptionLabel]}
+              >{dur.label}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -164,21 +179,59 @@ export default function AddMedicationScreen() {
               )}
               {/* render duration options */}
               {renderDurationOptions()}
-              <TouchableOpacity>
-                <View>
+              <TouchableOpacity style={styles.dateButton} 
+              onPress={() => setShowDatePicker(true)}
+              >
+                <View style={styles.dateIconContainer}>
                     <Ionicons name="calendar" size={20} color={"#1a8e2d"} />
                 </View>
-                <Text>Starts : {}</Text>
+                <Text style={styles.dateButtonText}>Starts : {form.startDate.toLocaleDateString()}</Text>
+                <Ionicons name="chevron-forward" size={20} color={'#666'} />
               </TouchableOpacity>
-              <DateTimePicker  value={form.startDate}
-              mode="date"
-              />
+              {showDatePicker &&  (<DateTimePicker  value={form.startDate}
+              mode="date" onChange={(e,date) => {
+                setShowDatePicker(false)
+                if(date) setForm({...form, startDate: date})
+              }}
+              />)}
+              {form.frequency && form.frequency !== 'As Needed' && (
+                <View>
+                  <Text>Medication Time</Text>
+               
+                {form.times.map((time, index) =>(
+                  <TouchableOpacity key={index} 
+                  onPress={() =>{setShowTimePicker(true)}}>
+                    <View >
+                      <Ionicons name='time-outline' size={20} color={'#1a8e2d'} />
+                    </View>
+                    <Text>{time}</Text>
+                    <Ionicons name='chevron-forward' size={20} color={'#666'} />
+                  </TouchableOpacity>
+                ))}
+                 </View>
+              )}
+             {showTimePicker &&  (
               <DateTimePicker mode="time" value={(() => {
                 const [hours, minutes] = form.times[0].split(":").map(Number);
                 const date = new Date();
                 date.setHours(hours,minutes, 0,0);
                 return date;
-              })()} />
+              })()}
+              onChange={(e,date) => {
+                setShowTimePicker(false)
+                if(date){
+                  const newTime = date.toLocaleTimeString('default', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false
+                  })
+                  setForm((prev)=> ({
+                    ...prev, times: prev.times.map((t,i) =>(i===0 ? newTime : t))
+                  }))
+                }
+              }}
+              />)}
+             
             </View>
           
           {/* reminders*/}
@@ -230,6 +283,7 @@ const styles =  StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
+    
   },
   headerGradient: {
     position: 'absolute',
@@ -270,6 +324,7 @@ const styles =  StyleSheet.create({
   },
   formContentContainer: {
     padding: 20,
+    paddingBottom: 120
   },
   section: {
     marginBottom: 25,
@@ -307,6 +362,91 @@ const styles =  StyleSheet.create({
     marginTop: 4,
     marginLeft: 12
   },
+  optionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginHorizontal: -5,
+    
+  },
+  optionCard: {
+    width: (width - 60) / 2,
+    backgroundColor: "while",
+    borderRadius: 16,
+    padding:15,
+    margin: 5,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor: "#f4f4f4ff",
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2
+  },
+  selectedOptionCard: {
+    backgroundColor: "#1a8e2d",
+    borderColor: "#1a8e2d"
+  },
+  optionIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 10
+  },
+  selectedOptionIcon: {
+    backgroundColor: "rgba(255,255,255,0.2)"
+  },
+  optionLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    textAlign: "center"
+  },
+  selectedOptionLabel: {
+    color: "white"
+  },
+  durationNumber: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1a8e2d",
+    marginBottom: 5
+  },
+  selectedDurationNumber: {
+    color: "white"
+  },
+  dateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "white",
+    borderRadius: 16,
+    padding: 15,
+    marginTop: 15,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    shadowColor:"#000",
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2
+  },
+  dateIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems : "center",
+    marginRight: 10
+  },
+  dateButtonText: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+  }
+
 
 
 

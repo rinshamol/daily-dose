@@ -50,7 +50,7 @@ const style = StyleSheet.create({
         flex: 1,
         backgroundColor: '#4CAF50',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     iconContainer: {
        alignItems: 'center'
