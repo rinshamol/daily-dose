@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   View,StyleSheet,
   Platform,
-  Dimensions
+  Dimensions,
+  Alert
 } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { useRouter } from "expo-router";
 const {width} = Dimensions.get("window");
 const FREQUENCIES = [
   {
@@ -72,6 +74,10 @@ export default function AddMedicationScreen() {
   const [selectedDuration, setSelectedDuration] = useState("")
   const [showTimePicker, setShowTimePicker] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+
+
   const renderFrequencyOptions = () => {
     return (
       <View style={styles.optionsGrid}>
@@ -109,6 +115,71 @@ export default function AddMedicationScreen() {
       </View>
     );
   };
+  const validateForm = () => {
+    const newErrors : {[key:string] : string} = {};
+    if(!form.name.trim()){
+      newErrors.name = "Medication name is required"
+    }
+    if(!form.dosage.trim()){
+      newErrors.dosage = "Dosage is required"
+    }
+    if(!form.frequency.trim()){
+      newErrors.frequency = "Frequency is required"
+    }
+    if(!form.duration.trim()){
+      newErrors.duration = "Duration is required"
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
+  const handleSave = async () => {
+    try {
+      if(!validateForm()) {
+        Alert.alert("Error","please fill in all required fields correctly")
+        return;
+      }
+      if(isSubmitting) return;
+      setIsSubmitting(true);
+      const colors =  ["#4CAF50","#2196F3","#FF9800","#E91E63","#9C27B0"];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+      const medicationData = {
+        id: Math.random().toString(36).substr(2,9),
+        ...form,
+        currentSupply: form.currentSupply ? Number(form.currentSupply):"",
+        totalSupply: form.currentSupply ? Number(form.currentSupply):"",
+        refillAt: form.refillAt ? Number(form.refillAt) : 0,
+        startDate: form.startDate.toISOString(),
+        color: randomColor
+      }
+      // await AddMedication(medicationData);
+      if(medicationData.reminserEnabled) {
+        // await scheduleMedicationReminder(medicationData);
+      }
+      Alert.alert(
+        "Success",
+        "Medication added successfully",
+        [
+          {
+            text: "OK",
+            onPress: () => router.back(),
+          },
+        ],
+        {cancelable: false}
+      )
+
+    } catch (error) {
+      console.error("Save error:",error)
+       Alert.alert(
+        "Error",
+        "Failed to save medication. please try again.",
+        [{text: "OK"}],
+        {cancelable: false}
+      )
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
   return (
     <View style={styles.container}>
       {/* */}
@@ -236,43 +307,62 @@ export default function AddMedicationScreen() {
             </View>
           
           {/* reminders*/}
-          <View>
-            <View>
-                <View>
-                    <View>
-                        <View>
+          <View style={styles.section}>
+            <View style={styles.card}>
+                <View style={styles.switchRow}>
+                    <View style={styles.switchLabelContainer}>
+                        <View style={styles.iconContainer}>
                             <Ionicons name="notifications" color={"1a8e2d"} />
                         </View>
                         <View>
-                         <Text>Reminders</Text>
-                         <Text>Get notified When its time to take your medications</Text>
+                         <Text style={styles.switchLabel}>Reminders</Text>
+                         <Text style={styles.switchSubLabel}>Get notified When its time to take your medications</Text>
                        </View>
                     </View>
-                   <Switch trackColor={{false: "#ddd", true: "#1a8e2d"}} thumbColor={'white'}/>
+                   <Switch value={form.reminserEnabled} trackColor={{false: "#ddd", true: "#1a8e2d"}} thumbColor={'white'}
+                   onValueChange={(value) => {
+                    setForm({...form, reminserEnabled: value})
+                   }}
+                   />
                 </View>
                
             </View>
           </View>
           {/* refill Tracking */}
           {/* notes */}
-          <View>
-            <View>
-                <TextInput placeholder="Add notes or special instructions..." placeholderTextColor="#999" />
+          <View style={styles.section}>
+            <View style={styles.textAreaContainer}>
+                <TextInput style={styles.textArea} placeholder="Add notes or special instructions..." placeholderTextColor="#999" 
+                onChangeText={(text)=> setForm({...form, notes: text})}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+                />
             </View>
           </View>
         </ScrollView>
-        <View>
-            <TouchableOpacity>
+        <View style={styles.footer}>
+            <TouchableOpacity
+            style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
+            >
                 <LinearGradient
                 colors={["#1a8e2d", "#146922"]}
+                style={styles.saveButtonGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 >
-                    <Text>Add Medication</Text>
+                <Text
+                  style={styles.saveButtonText}
+                  >Add Medication
+                  {isSubmitting ? "Adding..." : "Add Medication"}
+                  {/*  */}
+                  </Text>
                 </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity>
-                <Text>Cancel</Text>
+            <TouchableOpacity
+            style={styles.cancelButton} onPress={() => router.back()} disabled={isSubmitting}
+            >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
         </View>
       </View>
@@ -484,9 +574,102 @@ const styles =  StyleSheet.create({
   flex: 1,
   fontSize: 16,
   color: '#333'
- }
+ },
+ card: {
+  backgroundColor: "white",
+  borderRadius: 16,
+  padding: 20,
+  borderWidth: 1,
+  borderColor: "#e0e0e0",
+  shadowColor:"#000",
+  shadowOffset: {width: 0, height: 2},
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  elevation: 2
+ },
+ switchRow: {
+  flexDirection:'row',
+  justifyContent: 'space-between',
+  alignItems:'center'
+ },
+ switchLabelContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  flex:1
+ },
+iconContainer: {
+  justifyContent: "center",
+  alignItems: 'center',
+  marginRight: 15
+},
+switchLabel: {
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#333"
+},
+switchSubLabel: {
+  fontSize: 13,
+  color: "#666",
+  marginTop: 2
+},
+ textAreaContainer: {
+  backgroundColor: "white",
+  borderRadius: 16,
+  padding: 20,
+  borderWidth: 1,
+  borderColor: "#e0e0e0",
+  shadowColor:"#000",
+  shadowOffset: {width: 0, height: 2},
+  shadowOpacity: 0.05,
+  shadowRadius: 8,
+  elevation: 2
+ },
+textArea: {
+  height: 100,
+  padding: 15,
+  fontSize: 16,
+  color: "#333"
+},
+footer: {
+  padding: 20,
+  backgroundColor: "white",
+  borderTopWidth:1,
+  borderTopColor: "e0e0e0"
+},
+saveButton: {
+  borderRadius: 16,
+  overflow: "hidden",
+  marginBottom: 12
+},
+saveButtonDisabled: {
+  opacity: 0.7
+},
+saveButtonGradient: {
+  paddingVertical: 15,
+  justifyContent: "center",
+  alignItems:"center"
+},
+saveButtonText: {
+  color: "white",
+  fontSize: 16,
+  fontWeight: "700"
+},
+cancelButton: {
+  paddingVertical: 15,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: "#e0e0e0",
+  justifyContent: 'center',
+  alignItems:'center',
+  backgroundColor: "white"
 
 
+},
+cancelButtonText: {
+  color: "#666",
+  fontSize: 16,
+  fontWeight: "600"
+}
 
 
 })
