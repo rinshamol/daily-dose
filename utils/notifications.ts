@@ -1,100 +1,72 @@
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
+import { Medication } from "./storage";
 
-const MEDICATION_KEY = "@medications";
-const DOSE_HISTORY_KEY = "@dose_history";
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+export async function registerForPushNotificationAsync(): Promise<string|null> {
+    let token: string | null;
+    const {status: existingStatus} = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
 
-export interface Medication {
-    id: string;
-    name: string;
-    dosage: string;
-    times: string[];
-    startDate:string;
-    duration: string;
-    color: string;
-    reminderEnabled: boolean;
-    currentSupply: number;
-    totalSupply: number;
-    refillAt: number;
-    refillReminder:boolean;
-    lastrefillDate?:string;
-}
-
-export interface DoseHistory {
-    id:string;
-    medicationId: string;
-    timeStamp: string;
-    taken: boolean;
-}
-
-export async function getMedication(): Promise<Medication[]> {
-    try {
-        const data = await AsyncStorage.getItem(MEDICATION_KEY)
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error("Error getting medications:", error);
-        return [];
+    if(existingStatus !== 'granted'){
+        const {status} = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
     }
-}
+    if(finalStatus !== 'granted') {
+        return null;
+    }
 
-export async function addMedication(medication:Medication):Promise<void> {
     try {
-        const medications = await getMedication();
-        medications.push(medication);
-        await AsyncStorage.setItem(MEDICATION_KEY, JSON.stringify(MEDICATION_KEY))
-    } catch (error) {
-        throw error;
-    }
-}
-export async function getDoseHistory(): Promise<DoseHistory[]> {
-    try {
-        const data = await AsyncStorage.getItem(DOSE_HISTORY_KEY)
-        return data ? JSON.parse(data) : [];
-    } catch (error) {
-        console.error("Error getting dose history:", error);
-        return [];
-    }
-}
-export async function getTodaysDoses(): Promise<DoseHistory[]> {
-    try {
-        const history = await getDoseHistory();
-        const today = new Date().toDateString();
-        return history.filter(
-            (dose) => new Date(dose.timeStamp).toDateString() === today
-        );
-       
-    } catch (error) {
-        console.error("Error getting today's doses:", error);
-        return [];
-    }
-}
-export async function recordDose(
-    medicationId: string,
-    taken:boolean,
-    timeStamp: string
-): Promise<void> {
-    try {
-        const history = await getDoseHistory();
-        const newDose: DoseHistory ={
-            id: Math.random().toString(36).substr(2,9),
-            medicationId,
-            timeStamp,
-            taken
+        const response = await Notifications.getExpoPushTokenAsync();
+        token = response.data;
+        if(Platform.OS === 'android'){
+            await Notifications.setNotificationChannelAsync('default',{
+                name:'default',
+                importance: Notifications.AndroidImportance.MAX,
+                vibrationPattern: [0,250,250,250],
+                lightColor: '#1a8e2d'
+            })
         }
-        history.push(newDose);
-        await AsyncStorage.setItem(DOSE_HISTORY_KEY, JSON.stringify(history));
-
+        return token;
     } catch (error) {
-        console.error("Error recording dose:", error);
-        throw error;
+        console.error("Error getting push token:", error)
+        return null;
     }
-    
 }
-export async function clearAllData(): Promise<void> {
+export async function scheduleMedicationReminder(medication: Medication):Promise<string|undefined> {
+    if(!medication.reminderEnabled) return;
     try {
-        await AsyncStorage.multiRemove([MEDICATION_KEY, DOSE_HISTORY_KEY])
+        for ( const time of medication.times){
+            const [hours, minutes] = time.split(":").map(Number);
+            const today = new Date();
+            today.setHours(hours, minutes,0,0)
+            if(today < new Date()){
+                today.setDate(today.getDate() + 1)
+            }
+            const identifier = await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "Medication Reminder",
+                    body: `Time to take ${medication.name} (${medication.dosage})`,
+                    data: { medicationId: medication.id},
+                },
+                trigger: {
+                    hour: hours,
+                    minute: minutes,
+                    repeats: true
+                },
+            })
+            return identifier
+        }
     } catch (error) {
-         console.error("Error clearing data:", error);
-        throw error;
+         console.error("Error scheduling medication reminder:", error)
+        return undefined;
     }
-    
 }
