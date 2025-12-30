@@ -75,3 +75,31 @@ export async function scheduleMedicationReminder(
     return undefined;
   }
 }
+
+export async function cancelMedicationReminders(medicationId: string):Promise<void> {
+  try {
+    const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+    for(const notifications of scheduledNotifications){
+      const data = notifications.content.data as {
+        medicationId?: string;
+      } | null;
+      if(data?.medicationId === medicationId){
+        await Notifications.cancelScheduledNotificationAsync(notifications.identifier);
+      }
+    }
+  } catch (error) {
+     console.error("Error canceling medication reminder:", error);
+  }
+  
+}
+
+export async function updateMedicationReminder(medication: Medication): Promise<void> {
+  try {
+    await cancelMedicationReminders(medication.id);
+    await scheduleMedicationReminder(medication);
+  } catch (error) {
+     console.error("Error updating medication reminder:", error);
+
+  }
+  
+}
