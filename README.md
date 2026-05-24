@@ -1,50 +1,117 @@
-# Welcome to your Expo app 👋
+# 💊 Daily Dose – Medication Reminder App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+An Android application built with **Expo** and **React Native** to help users track and manage their daily medications. Features biometric authentication, push notifications, and a clean animated UI.
 
-## Get started
+---
 
-1. Install dependencies
+## 📌 Features
 
-   ```bash
-   npm install
-   ```
+- 💊 **Medication Tracking** – Add, view, and manage your daily medications
+- 🔐 **Biometric Authentication** – Secure access via Face ID / Touch ID
+- 🔔 **Push Notifications** – Timely medication reminders using Expo Notifications
+- 🎨 **Animated UI** – Smooth splash screen and circular progress animations
+- 📁 **File-based Routing** – Scalable navigation with Expo Router
+- 💾 **Local Storage** – Persistent data with AsyncStorage
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 🛠️ Tech Stack
 
-In the output, you'll find options to open the app in a
+| Category   | Technology                        |
+|------------|-----------------------------------|
+| Language   | TypeScript                        |
+| Framework  | React Native, Expo                |
+| Navigation | Expo Router                       |
+| Auth       | expo-local-authentication         |
+| Storage    | @react-native-async-storage       |
+| Notifications | expo-notifications             |
+| Icons      | @expo/vector-icons                |
+| Platform   | Android (iOS & Web via Expo)      |
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+---
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 📂 Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+daily-dose/
+│
+├── app/
+│   ├── (tabs)/
+│   │   ├── _layout.tsx
+│   │   └── explore.tsx
+│   ├── auth.tsx
+│   └── index.tsx
+│
+├── components/
+│   ├── SplashScreen.tsx
+│   └── CircularProgress.tsx
+│
+├── assets/
+├── app.json
+├── package.json
+└── tsconfig.json
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🚀 Getting Started
 
-To learn more about developing your project with Expo, look at the following resources:
+### Prerequisites
+- Node.js
+- Expo CLI
+- Android device or emulator
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### 1️⃣ Clone the Repository
+```bash
+git clone https://github.com/rinshamol/daily-dose.git
+cd daily-dose
+```
 
-## Join the community
+### 2️⃣ Install Dependencies
+```bash
+npm install
+```
 
-Join our community of developers creating universal apps.
+### 3️⃣ Start the App
+```bash
+npx expo start
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Scan the QR code with the **Expo Go** app on your Android device, or press `a` to open in an Android emulator.
+
+---
+
+## 📱 Screenshots
+
+> Coming soon
+
+---
+
+## ⚠️ Known Limitations
+
+- Uses plain AsyncStorage (encryption planned via `expo-secure-store`)
+- No unit/integration tests yet
+- Some UI sections still in progress
+
+---
+
+## 🔮 Roadmap
+
+- [ ] Encrypted storage for sensitive health data
+- [ ] Complete tab navigation layout
+- [ ] Unit & integration tests with Jest
+- [ ] iOS testing and optimization
+- [ ] Dark mode support
+
+---
+
+## 👩‍💻 Author
+
+**Rinsha Mol K S** – Software Developer  
+GitHub: [@rinshamol](https://github.com/rinshamol)
+
+---
+
+## 📝 License
+
+This project is for educational purposes.
